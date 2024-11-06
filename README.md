@@ -6,14 +6,12 @@ VRCMute is a VRChat mute assistant that uses speech-to-text conversion (powered 
 
 - Real-time speech-to-text conversion using DashScope API
 - Automatic mute functionality for VRChat
-- CUDA acceleration support for optimal performance
 - Content-based muting customization
 
 ## Prerequisites
 
 - Windows 10/11
 - Python 3.12 or higher
-- CUDA Toolkit 12.1 (for GPU acceleration) (not required)
 - A valid DashScope API key for paraformer-realtime integration
 
 ## Installation
@@ -111,7 +109,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Acknowledgments
 
 - [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx) for speech-to-text functionality
-- [DashScope](https://dashscope.aliyun.com/) for providing the Qwen AI model
+- [DashScope](https://dashscope.aliyun.com/) for providing the paraformer-realtime model
 - VRChat community for inspiration and support
 
 ## Troubleshooting
