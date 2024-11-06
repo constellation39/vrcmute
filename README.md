@@ -11,7 +11,7 @@ VRCMute is a VRChat mute assistant that uses speech-to-text conversion (powered 
 ## Prerequisites
 
 - Windows 10/11
-- Python 3.12 or higher
+- Python 3.12 or higher (release not required.)
 - A valid DashScope API key for paraformer-realtime integration
 
 ## Installation
