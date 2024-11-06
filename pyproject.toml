@@ -1,0 +1,173 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "vrcmute"
+version = "0.1.0"
+description = "A VRChat mute assistant using DashScope API for speech-to-text conversion"
+readme = "README.md"
+requires-python = ">=3.12"
+license = "MIT"
+keywords = ["vrchat", "mute", "speech-to-text", "sherpa-onnx", "DashScope API"]
+authors = [{ name = "Constellation39", email = "Constellation39@outlook.com" }]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "License :: OSI Approved :: MIT License",
+]
+dependencies = [
+    "numpy",
+    "sounddevice",
+    "dashscope",
+    "scipy",
+    "librosa",
+    "python-osc",
+    "discover",
+    "sherpa-onnx",
+]
+
+[project.urls]
+Homepage = "https://github.com/Constellation39/vrcmute"
+Repository = "https://github.com/Constellation39/vrcmute"
+Documentation = "https://vrcmute.readthedocs.io"
+
+[project.optional-dependencies]
+dev = ["pytest>=6.2.3", "ruff>=0.1.0", "mypy>=1.0.0"]
+
+[project.scripts]
+vrcmute = "src.__main__:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 88
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "F",
+    "I",
+    "C",
+    "B",
+    "A",
+    "COM",
+    "N",
+    "UP",
+    "YTT",
+    "S",
+    "BLE",
+    "FBT",
+    "T20",
+    "Q",
+    "RET",
+    "SIM",
+    "ARG",
+    "ERA",
+    "PL",
+    "RUF",
+]
+ignore = [
+    "E501",
+    "D100",
+    "D104",
+    "D101",
+    "D102",
+    "D103",
+    "D107",
+    "ANN101",
+    "ANN201",
+    "ANN202",
+]
+
+fixable = [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "I",
+    "N",
+    "Q",
+    "S",
+    "T",
+    "W",
+    "ANN",
+    "ARG",
+    "BLE",
+    "COM",
+    "DJ",
+    "DTZ",
+    "EM",
+    "ERA",
+    "EXE",
+    "FBT",
+    "ICN",
+    "INP",
+    "ISC",
+    "NPY",
+    "PD",
+    "PGH",
+    "PIE",
+    "PL",
+    "PT",
+    "PTH",
+    "PYI",
+    "RET",
+    "RSE",
+    "RUF",
+    "SIM",
+    "SLF",
+    "TCH",
+    "TID",
+    "TRY",
+    "UP",
+    "YTT",
+]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+"test_*.py" = ["S101"]
+
+[tool.ruff.lint.isort]
+force-single-line = true
+lines-after-imports = 2
+force-wrap-aliases = true
+combine-as-imports = true
+
+[tool.ruff.lint.flake8-quotes]
+docstring-quotes = "double"
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+disallow_untyped_defs = true
+check_untyped_defs = true
+strict_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+no_implicit_reexport = true
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q"
+testpaths = ["tests"]

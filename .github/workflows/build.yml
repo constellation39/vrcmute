@@ -1,0 +1,50 @@
+name: Build VRCMute
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+        cache: 'pip'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyinstaller
+        pip install ruff
+    
+    - name: Lint with Ruff
+      run: |
+        ruff check .
+        ruff format --check .
+    
+    - name: Build with PyInstaller
+      run: |
+        pyinstaller vrcmute.spec
+    
+    - name: Create Release ZIP
+      run: |
+        cd dist
+        dir
+        7z a vrcmute-windows.zip vrcmute.exe
+    
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: dist/vrcmute-windows.zip
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
