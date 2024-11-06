@@ -34,7 +34,7 @@ Repository = "https://github.com/Constellation39/vrcmute"
 Documentation = "https://vrcmute.readthedocs.io"
 
 [project.optional-dependencies]
-dev = ["pytest>=6.2.3", "ruff>=0.1.0", "mypy>=1.0.0"]
+dev = ["ruff>=0.1.0", "mypy>=1.0.0"]
 
 [project.scripts]
 vrcmute = "src.__main__:main"
@@ -166,8 +166,3 @@ strict_optional = true
 warn_redundant_casts = true
 warn_unused_ignores = true
 no_implicit_reexport = true
-
-[tool.pytest.ini_options]
-minversion = "6.0"
-addopts = "-ra -q"
-testpaths = ["tests"]
