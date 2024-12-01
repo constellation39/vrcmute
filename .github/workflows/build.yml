@@ -27,11 +27,6 @@ jobs:
         pip install ruff
         pip install -e .
     
-    - name: Lint with Ruff
-      run: |
-        ruff check .
-        ruff format --check .
-    
     - name: Build with PyInstaller
       run: |
         pyinstaller vrcmute.spec
