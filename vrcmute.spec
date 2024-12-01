@@ -14,13 +14,12 @@ for package in [
     'librosa',
     'python-osc',
     'discover',
-    'sherpa-onnx',
 ]:
     hiddenimports.extend(collect_submodules(package))
 
 # Collect additional data files
 datas = []
-for package in ['sherpa-onnx', 'librosa']:
+for package in ['librosa']:
     datas.extend(collect_data_files(package))
 
 a = Analysis(

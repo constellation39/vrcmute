@@ -2,13 +2,11 @@ import asyncio
 import re
 import time
 import wave
-from collections import deque
 from dataclasses import dataclass
 from typing import Any
 
 import dashscope
 import numpy as np
-import sherpa_onnx
 import sounddevice as sd
 from dashscope.audio.asr import Recognition
 from dashscope.audio.asr import RecognitionCallback
@@ -22,13 +20,9 @@ from src.logger import logger
 class Config:
     SAMPLE_RATE: int = 16000
     CHANNELS: int = 1
-    INTERVAL: float = 0.1
-    VAD_SPEECH_THRESHOLD: int = 3
-    VAD_SILENCE_THRESHOLD: int = 5
-    AUDIO_BUFFER_SIZE: int = 20
+    INTERVAL: float = 0.2
     MAX_RETRIES: int = 3
     RETRY_DELAY: int = 5
-    USE_VAD: bool = False
 
 
 class AudioProcessor:
@@ -82,37 +76,6 @@ class TextCleaner:
         return re.sub(cls.PUNCTUATION_PATTERN, "", content)
 
 
-class VoiceActivityDetector:
-    """Manages voice activity detection using state machine approach."""
-
-    def __init__(self, config: Config):
-        self.state_machine = self._create_vad_state_machine(config)
-        self.vad = self._initialize_vad(config)
-        self.audio_buffer = deque(maxlen=config.AUDIO_BUFFER_SIZE)
-        self.speech_detected = False
-
-    @staticmethod
-    def _create_vad_state_machine(config: Config) -> "VadStateMachine":
-        return VadStateMachine(
-            speech_threshold=config.VAD_SPEECH_THRESHOLD,
-            silence_threshold=config.VAD_SILENCE_THRESHOLD,
-        )
-
-    @staticmethod
-    def _initialize_vad(config: Config) -> sherpa_onnx.VoiceActivityDetector:
-        vad_config = sherpa_onnx.VadModelConfig()
-        vad_config.silero_vad.model = "silero_vad_v5.onnx"
-        vad_config.sample_rate = config.SAMPLE_RATE
-        vad_config.provider = "gpu"
-        return sherpa_onnx.VoiceActivityDetector(vad_config, buffer_size_in_seconds=1)
-
-    def process_chunk(self, chunk_data: np.ndarray) -> bool:
-        self.audio_buffer.append(chunk_data)
-        self.vad.accept_waveform(chunk_data)
-        is_speech = self.vad.is_speech_detected()
-        return self.state_machine.update(is_speech)
-
-
 class SpeechRecognitionHandler:
     """Manages speech recognition operations using DashScope."""
 
@@ -128,7 +91,7 @@ class SpeechRecognitionHandler:
             sample_rate=self.config.SAMPLE_RATE,
             callback=callback,
             speaker_count=1,
-            language_hints=["zh", "en"],
+            # language_hints=["zh", "en"],
         )
 
     async def start(self) -> None:
@@ -173,10 +136,6 @@ class VRCMute:
         self.config = config
         self.vrc_client = vrc_client
         self.callback = CustomRecognitionCallback(vrc_client)
-        if self.config.USE_VAD:
-            self.vad_handler = VoiceActivityDetector(config)
-        else:
-            self.vad_handler = None
         self.recognition_handler = SpeechRecognitionHandler(
             api_key,
             config,
@@ -209,10 +168,7 @@ class VRCMute:
                 if not self.is_running:
                     break
                 chunk = samples[i : i + chunk_size]
-                if self.config.USE_VAD:
-                    await self.audio_queue.put(chunk)
-                else:
-                    await self.recognition_handler.process_audio(chunk)
+                await self.recognition_handler.process_audio(chunk)
                 await asyncio.sleep(self.config.INTERVAL)
 
         except Exception as e:
@@ -248,12 +204,9 @@ class VRCMute:
             if status:
                 logger.info(f"Warning: {status}")
             if self.is_running:
-                if self.config.USE_VAD:
-                    self.audio_queue.put_nowait(indata.copy())
-                else:
-                    asyncio.run(self.recognition_handler.process_audio(indata.copy()))
+                asyncio.run(self.recognition_handler.process_audio(indata.copy()))
 
-        try:
+        try:    
             with sd.InputStream(
                 callback=callback,
                 channels=self.config.CHANNELS,
@@ -268,19 +221,7 @@ class VRCMute:
             await self._handle_error(f"Microphone processing error: {e}")
 
     async def _process_chunk(self, chunk_data: np.ndarray) -> None:
-        if self.config.USE_VAD and self.vad_handler:
-            is_speech = self.vad_handler.process_chunk(chunk_data)
-            if is_speech and not self.vad_handler.speech_detected:
-                self.vad_handler.speech_detected = True
-                for past_chunk in list(self.vad_handler.audio_buffer)[:-1]:
-                    await self.recognition_handler.process_audio(past_chunk)
-            if is_speech:
-                await self.recognition_handler.process_audio(chunk_data)
-            elif self.vad_handler.speech_detected:
-                self.vad_handler.speech_detected = False
-        else:
-            # 如果不使用VAD,直接处理所有音频
-            await self.recognition_handler.process_audio(chunk_data)
+        await self.recognition_handler.process_audio(chunk_data)
 
     async def _handle_error(self, error_message: str) -> None:
         logger.info(f"Error: {error_message}")
@@ -363,29 +304,3 @@ class CustomRecognitionCallback(RecognitionCallback):
         await self.osc_client.send_chatbox(
             [content, True, content.endswith((".", "。", "？"))],
         )
-
-
-class VadStateMachine:
-    """Implements the state machine for voice activity detection."""
-
-    def __init__(self, speech_threshold: int, silence_threshold: int):
-        self.speech_frames = 0
-        self.silence_frames = 0
-        self.speech_threshold = speech_threshold
-        self.silence_threshold = silence_threshold
-        self.is_speech = False
-
-    def update(self, is_speech: bool) -> bool:
-        if is_speech:
-            self.speech_frames += 1
-            self.silence_frames = 0
-        else:
-            self.silence_frames += 1
-            self.speech_frames = 0
-
-        if self.speech_frames >= self.speech_threshold:
-            self.is_speech = True
-        elif self.silence_frames >= self.silence_threshold:
-            self.is_speech = False
-
-        return self.is_speech

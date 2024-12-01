@@ -25,7 +25,6 @@ dependencies = [
     "librosa",
     "python-osc",
     "discover",
-    "sherpa-onnx",
 ]
 
 [project.urls]

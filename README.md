@@ -5,7 +5,6 @@ VRCMute is a VRChat mute assistant that uses speech-to-text conversion (powered 
 ## Features
 
 - Real-time speech-to-text conversion using DashScope API
-- Automatic mute functionality for VRChat
 - Content-based muting customization
 
 ## Prerequisites
@@ -115,11 +114,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Troubleshooting
 
 ### Common Issues
-
-1. **CUDA Issues**
-   - Ensure CUDA Toolkit 12.1 is properly installed
-   - Check your GPU drivers are up to date
-   - Verify CUDA paths are correctly set in environment variables
 
 2. **DashScope API Issues**
    - Verify your API key is correctly set
